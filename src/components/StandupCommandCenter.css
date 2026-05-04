@@ -107,24 +107,34 @@
   font-size: 13px;
   font-weight: 500;
   cursor: pointer;
-  transition: background 0.15s, border-color 0.15s, color 0.15s;
+  transition: background 0.15s, border-color 0.15s, color 0.15s, opacity 0.2s;
   white-space: nowrap;
 }
 
+/* Hide the edit/done button unless hovering the header or it's active */
+.scc-header .scc-btn:not(.scc-btn--active) {
+  opacity: 0;
+}
+
+.scc-header:hover .scc-btn:not(.scc-btn--active) {
+  opacity: 1;
+}
+
 .scc-btn:hover {
-  background: rgba(255, 255, 255, 0.08);
-  border-color: rgba(255, 255, 255, 0.2);
+  background: var(--scc-surface-2);
+  border-color: var(--scc-border-hover);
   color: var(--scc-text-heading);
 }
 
 .scc-btn--active {
+  opacity: 1;
   background: var(--scc-accent-glow);
-  border-color: rgba(99, 102, 241, 0.5);
-  color: #a5b4fc;
+  border-color: rgba(79, 70, 229, 0.4);
+  color: var(--scc-accent);
 }
 
 .scc-btn--active:hover {
-  background: rgba(99, 102, 241, 0.3);
+  background: rgba(79, 70, 229, 0.15);
 }
 
 .scc-btn-icon {
