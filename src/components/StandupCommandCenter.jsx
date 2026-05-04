@@ -149,6 +149,12 @@ export default function StandupCommandCenter() {
     return null;
   })();
 
+  const hasTeams = (data.teams ?? []).some(
+    (t) => t.name.trim() || t.done > 0 || t.incomplete > 0 || t.unestimated > 0
+  );
+  const hasInsights = (data.insights ?? []).length > 0;
+  const hasRisks = [data.blocked, data.qaRisk, data.largeNotInQA].some((v) => v?.trim());
+
   return (
     <div className="scc-page">
       {/* Header */}
@@ -207,99 +213,125 @@ export default function StandupCommandCenter() {
         )}
 
         <div className="scc-metrics">
-          <MetricCard label="Committed" value={data.committed} variant="neutral" editing={editing} onChange={(v) => update("committed", v)} />
-          <MetricCard label="Done"      value={data.done}      variant="success" editing={editing} onChange={(v) => update("done", v)} />
-          <MetricCard label="At Risk"   value={data.atRisk}    variant="warning" editing={editing} onChange={(v) => update("atRisk", v)} />
-          <MetricCard label="Watch"     value={data.watch}     variant="warning" editing={editing} onChange={(v) => update("watch", v)} />
-        </div>
-
-        <div className="scc-goal">
-          <span className="scc-field-label">Sprint Goal</span>
-          {editing ? (
-            <textarea className="scc-textarea" value={data.sprintGoal} onChange={(e) => update("sprintGoal", e.target.value)} />
-          ) : (
-            <p className="scc-goal-text">{data.sprintGoal}</p>
+          {(editing || data.committed?.trim()) && (
+            <MetricCard label="Committed" value={data.committed} variant="neutral" editing={editing} onChange={(v) => update("committed", v)} />
+          )}
+          {(editing || data.done?.trim()) && (
+            <MetricCard label="Done" value={data.done} variant="success" editing={editing} onChange={(v) => update("done", v)} />
+          )}
+          {(editing || data.atRisk?.trim()) && (
+            <MetricCard label="At Risk" value={data.atRisk} variant="warning" editing={editing} onChange={(v) => update("atRisk", v)} />
+          )}
+          {(editing || data.watch?.trim()) && (
+            <MetricCard label="Watch" value={data.watch} variant="warning" editing={editing} onChange={(v) => update("watch", v)} />
           )}
         </div>
+
+        {(editing || data.sprintGoal?.trim()) && (
+          <div className="scc-goal">
+            <span className="scc-field-label">Sprint Goal</span>
+            {editing ? (
+              <textarea className="scc-textarea" value={data.sprintGoal} onChange={(e) => update("sprintGoal", e.target.value)} />
+            ) : (
+              <p className="scc-goal-text">{data.sprintGoal}</p>
+            )}
+          </div>
+        )}
       </section>
 
       {/* Team Progress */}
-      <section className="scc-card">
-        <div className="scc-card-header">
-          <h2 className="scc-section-title">
-            <span className="scc-icon">▲</span> Team Progress
-          </h2>
-          {editing && (
-            <button className="scc-btn scc-btn--sm" onClick={addTeam}>+ Add</button>
+      {(editing || hasTeams) && (
+        <section className="scc-card">
+          <div className="scc-card-header">
+            <h2 className="scc-section-title">
+              <span className="scc-icon">▲</span> Team Progress
+            </h2>
+            {editing && (
+              <button className="scc-btn scc-btn--sm" onClick={addTeam}>+ Add</button>
+            )}
+          </div>
+          <div className="scc-teams">
+            {(data.teams ?? [])
+              .filter((t) => editing || t.name.trim() || t.done > 0 || t.incomplete > 0 || t.unestimated > 0)
+              .map((team) => (
+                <TeamRow
+                  key={team.id}
+                  team={team}
+                  editing={editing}
+                  onChange={(field, val) => updateTeam(team.id, field, val)}
+                  onRemove={() => removeTeam(team.id)}
+                />
+              ))}
+          </div>
+        </section>
+      )}
+
+      {/* Trivia */}
+      {(editing || data.trivia?.trim()) && (
+        <div className="scc-trivia-bar">
+          <span className="scc-trivia-icon">💡</span>
+          {editing ? (
+            <input
+              className="scc-trivia-input"
+              value={data.trivia}
+              onChange={(e) => update("trivia", e.target.value)}
+            />
+          ) : (
+            <span className="scc-trivia-text">{data.trivia}</span>
           )}
         </div>
-        <div className="scc-teams">
-          {(data.teams ?? []).map((team) => (
-            <TeamRow
-              key={team.id}
-              team={team}
-              editing={editing}
-              onChange={(field, val) => updateTeam(team.id, field, val)}
-              onRemove={() => removeTeam(team.id)}
-            />
-          ))}
-        </div>
-      </section>
-
-      {/* Trivia — full width, compact */}
-      <div className="scc-trivia-bar">
-        <span className="scc-trivia-icon">💡</span>
-        {editing ? (
-          <input
-            className="scc-trivia-input"
-            value={data.trivia}
-            onChange={(e) => update("trivia", e.target.value)}
-          />
-        ) : (
-          <span className="scc-trivia-text">{data.trivia}</span>
-        )}
-      </div>
+      )}
 
       {/* Jira Insights */}
-      <section className="scc-card">
-        <div className="scc-card-header">
-          <h2 className="scc-section-title">
-            <span className="scc-icon">⚡</span> Jira Insights
-          </h2>
-          {editing && (
-            <button className="scc-btn scc-btn--sm" onClick={addInsight}>
-              + Add
-            </button>
-          )}
-        </div>
+      {(editing || hasInsights) && (
+        <section className="scc-card">
+          <div className="scc-card-header">
+            <h2 className="scc-section-title">
+              <span className="scc-icon">⚡</span> Jira Insights
+            </h2>
+            {editing && (
+              <button className="scc-btn scc-btn--sm" onClick={addInsight}>
+                + Add
+              </button>
+            )}
+          </div>
 
-        <div className="scc-insights">
-          {(data.insights ?? []).map((ins, idx) => (
-            <InsightCard
-              key={ins.id}
-              index={idx + 1}
-              insight={ins}
-              editing={editing}
-              onChange={(field, val) => updateInsight(ins.id, field, val)}
-              onRemove={() => removeInsight(ins.id)}
-            />
-          ))}
-        </div>
-      </section>
+          <div className="scc-insights">
+            {(data.insights ?? []).map((ins, idx) => (
+              <InsightCard
+                key={ins.id}
+                index={idx + 1}
+                insight={ins}
+                editing={editing}
+                onChange={(field, val) => updateInsight(ins.id, field, val)}
+                onRemove={() => removeInsight(ins.id)}
+              />
+            ))}
+          </div>
+        </section>
+      )}
 
       {/* Carryover Risks */}
-      <section className="scc-card">
-        <div className="scc-card-header">
-          <h2 className="scc-section-title">
-            <span className="scc-icon scc-icon--danger">⚠</span> Carryover Risks
-          </h2>
-        </div>
-        <div className="scc-risks">
-          <RiskItem label="Blocked"         value={data.blocked}      variant="danger"  editing={editing} onChange={(v) => update("blocked", v)} />
-          <RiskItem label="QA › 2 days"     value={data.qaRisk}       variant="warning" editing={editing} onChange={(v) => update("qaRisk", v)} />
-          <RiskItem label="Large not in QA" value={data.largeNotInQA} variant="info"    editing={editing} onChange={(v) => update("largeNotInQA", v)} />
-        </div>
-      </section>
+      {(editing || hasRisks) && (
+        <section className="scc-card">
+          <div className="scc-card-header">
+            <h2 className="scc-section-title">
+              <span className="scc-icon scc-icon--danger">⚠</span> Carryover Risks
+            </h2>
+          </div>
+          <div className="scc-risks">
+            {(editing || data.blocked?.trim()) && (
+              <RiskItem label="Blocked" value={data.blocked} variant="danger" editing={editing} onChange={(v) => update("blocked", v)} />
+            )}
+            {(editing || data.qaRisk?.trim()) && (
+              <RiskItem label="QA › 2 days" value={data.qaRisk} variant="warning" editing={editing} onChange={(v) => update("qaRisk", v)} />
+            )}
+            {(editing || data.largeNotInQA?.trim()) && (
+              <RiskItem label="Large not in QA" value={data.largeNotInQA} variant="info" editing={editing} onChange={(v) => update("largeNotInQA", v)} />
+            )}
+          </div>
+        </section>
+      )}
     </div>
   );
 }
@@ -475,30 +507,34 @@ function InsightCard({ index, insight, editing, onChange, onRemove }) {
       )}
 
       <div className="scc-insight-body">
-        <div className="scc-insight-row">
-          <span className="scc-insight-row-label">The Issue</span>
-          {editing ? (
-            <textarea
-              className="scc-textarea scc-textarea--sm"
-              value={insight.issue}
-              onChange={(e) => onChange("issue", e.target.value)}
-            />
-          ) : (
-            <p className="scc-insight-text">{insight.issue}</p>
-          )}
-        </div>
-        <div className="scc-insight-row">
-          <span className="scc-insight-row-label">Why it matters</span>
-          {editing ? (
-            <textarea
-              className="scc-textarea scc-textarea--sm"
-              value={insight.why}
-              onChange={(e) => onChange("why", e.target.value)}
-            />
-          ) : (
-            <p className="scc-insight-text">{insight.why}</p>
-          )}
-        </div>
+        {(editing || insight.issue?.trim()) && (
+          <div className="scc-insight-row">
+            <span className="scc-insight-row-label">The Issue</span>
+            {editing ? (
+              <textarea
+                className="scc-textarea scc-textarea--sm"
+                value={insight.issue}
+                onChange={(e) => onChange("issue", e.target.value)}
+              />
+            ) : (
+              <p className="scc-insight-text">{insight.issue}</p>
+            )}
+          </div>
+        )}
+        {(editing || insight.why?.trim()) && (
+          <div className="scc-insight-row">
+            <span className="scc-insight-row-label">Why it matters</span>
+            {editing ? (
+              <textarea
+                className="scc-textarea scc-textarea--sm"
+                value={insight.why}
+                onChange={(e) => onChange("why", e.target.value)}
+              />
+            ) : (
+              <p className="scc-insight-text">{insight.why}</p>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );
