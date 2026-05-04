@@ -307,6 +307,216 @@
   line-height: 1.65;
 }
 
+/* ─── Team progress ──────────────────────────────────────────────────────── */
+.scc-teams {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.scc-team-row {
+  display: grid;
+  grid-template-columns: 180px 1fr 300px;
+  align-items: start;
+  gap: 20px;
+}
+
+.scc-team-name-col {
+  padding-top: 2px;
+}
+
+.scc-team-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--scc-text-heading);
+}
+
+.scc-team-input {
+  width: 100%;
+  background: var(--scc-surface-2);
+  border: 1px solid var(--scc-border-hover);
+  border-radius: var(--scc-radius-sm);
+  color: var(--scc-text-heading);
+  font-family: var(--scc-font);
+  font-size: 14px;
+  font-weight: 600;
+  padding: 4px 8px;
+  outline: none;
+  box-sizing: border-box;
+}
+
+.scc-team-input:focus { border-color: var(--scc-accent); }
+
+/* Stacked bar */
+.scc-team-bar-track {
+  height: 12px;
+  background: var(--scc-neutral-bg);
+  border: 1px solid var(--scc-border);
+  border-radius: 99px;
+  overflow: hidden;
+  display: flex;
+}
+
+.scc-team-bar-done {
+  height: 100%;
+  background: var(--scc-success);
+  transition: width 0.4s ease;
+}
+
+.scc-team-bar-incomp {
+  height: 100%;
+  background: var(--scc-warning-border);
+  transition: width 0.4s ease;
+}
+
+.scc-team-bar-legend {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin-top: 6px;
+}
+
+.scc-legend-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.scc-legend-dot--done   { background: var(--scc-success); }
+.scc-legend-dot--incomp { background: var(--scc-warning-border); }
+.scc-legend-dot--unest  { background: var(--scc-text-muted); }
+
+.scc-legend-label {
+  font-size: 11px;
+  color: var(--scc-text-muted);
+  margin-right: 6px;
+}
+
+/* Read stats */
+.scc-team-read-stats {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.scc-team-pts-row {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.scc-team-pts {
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.scc-team-pts--done   { color: var(--scc-success); }
+.scc-team-pts--incomp { color: var(--scc-warning); }
+.scc-team-pts--unest  { color: var(--scc-text-muted); }
+
+.scc-team-pts-label {
+  font-size: 11px;
+  font-weight: 500;
+  opacity: 0.75;
+}
+
+.scc-team-pts-sep {
+  color: var(--scc-border-hover);
+  font-size: 13px;
+}
+
+.scc-team-prev-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.scc-team-meta {
+  font-size: 12px;
+  color: var(--scc-text-muted);
+}
+
+.scc-team-delta {
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.scc-team-delta--up   { color: var(--scc-success); }
+.scc-team-delta--down { color: var(--scc-danger); }
+
+/* Edit grid */
+.scc-team-edit-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.scc-team-edit-cols {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.scc-team-edit-header {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--scc-text-muted);
+  margin-bottom: 6px;
+}
+
+.scc-team-edit-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.scc-num-field {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.scc-num-field-label {
+  font-size: 12px;
+  color: var(--scc-text-muted);
+}
+
+.scc-team-num-input {
+  width: 64px;
+  background: var(--scc-surface-2);
+  border: 1px solid var(--scc-border-hover);
+  border-radius: 4px;
+  color: var(--scc-text-heading);
+  font-family: var(--scc-font);
+  font-size: 13px;
+  font-weight: 600;
+  padding: 3px 6px;
+  outline: none;
+  text-align: center;
+}
+
+.scc-team-num-input:focus { border-color: var(--scc-accent); }
+
+.scc-team-remove {
+  align-self: flex-start;
+}
+
+@media (max-width: 700px) {
+  .scc-team-row {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+  .scc-team-edit-cols {
+    grid-template-columns: 1fr;
+  }
+}
+
 /* ─── Trivia bar ─────────────────────────────────────────────────────────── */
 .scc-trivia-bar {
   display: flex;

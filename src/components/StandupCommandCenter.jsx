@@ -1,6 +1,17 @@
 import { useEffect, useState } from "react";
 import "./StandupCommandCenter.css";
 
+const defaultTeams = [
+  {
+    id: 1,
+    name: "Platform Readiness",
+    done: 18,
+    incomplete: 14,
+    unestimated: 5,
+    prev: { done: 15, incomplete: 18, unestimated: 8 },
+  },
+];
+
 const defaultInsights = [
   {
     id: 1,
@@ -37,6 +48,7 @@ const defaultData = {
   atRisk: "11 pts",
   watch: "17 pts",
   trivia: "The average standup takes 11 minutes — but feels like 40.",
+  teams: defaultTeams,
   insights: defaultInsights,
   blocked: "COR-124 blocked by external team.",
   qaRisk: "COR-141 in QA > 2 days.",
@@ -66,6 +78,39 @@ export default function StandupCommandCenter() {
 
   const update = (key, value) => {
     setData((prev) => ({ ...prev, [key]: value }));
+  };
+
+  const updateTeam = (id, field, value) => {
+    setData((prev) => ({
+      ...prev,
+      teams: (prev.teams ?? []).map((t) =>
+        t.id === id ? { ...t, [field]: value } : t
+      ),
+    }));
+  };
+
+  const addTeam = () => {
+    setData((prev) => ({
+      ...prev,
+      teams: [
+        ...(prev.teams ?? []),
+        {
+          id: Date.now(),
+          name: "",
+          done: 0,
+          incomplete: 0,
+          unestimated: 0,
+          prev: { done: 0, incomplete: 0, unestimated: 0 },
+        },
+      ],
+    }));
+  };
+
+  const removeTeam = (id) => {
+    setData((prev) => ({
+      ...prev,
+      teams: (prev.teams ?? []).filter((t) => t.id !== id),
+    }));
   };
 
   const updateInsight = (id, field, value) => {
@@ -178,6 +223,29 @@ export default function StandupCommandCenter() {
         </div>
       </section>
 
+      {/* Team Progress */}
+      <section className="scc-card">
+        <div className="scc-card-header">
+          <h2 className="scc-section-title">
+            <span className="scc-icon">▲</span> Team Progress
+          </h2>
+          {editing && (
+            <button className="scc-btn scc-btn--sm" onClick={addTeam}>+ Add</button>
+          )}
+        </div>
+        <div className="scc-teams">
+          {(data.teams ?? []).map((team) => (
+            <TeamRow
+              key={team.id}
+              team={team}
+              editing={editing}
+              onChange={(field, val) => updateTeam(team.id, field, val)}
+              onRemove={() => removeTeam(team.id)}
+            />
+          ))}
+        </div>
+      </section>
+
       {/* Trivia — full width, compact */}
       <div className="scc-trivia-bar">
         <span className="scc-trivia-icon">💡</span>
@@ -233,6 +301,121 @@ export default function StandupCommandCenter() {
         </div>
       </section>
     </div>
+  );
+}
+
+/* ─── Team row ───────────────────────────────────────────────────────────── */
+function TeamRow({ team, editing, onChange, onRemove }) {
+  const total = (team.done ?? 0) + (team.incomplete ?? 0);
+  const donePct   = total > 0 ? (team.done / total) * 100 : 0;
+  const incompPct = total > 0 ? (team.incomplete / total) * 100 : 0;
+
+  const prevTotal = (team.prev?.done ?? 0) + (team.prev?.incomplete ?? 0);
+  const prevDonePct = prevTotal > 0 ? Math.round((team.prev.done / prevTotal) * 100) : 0;
+  const currDonePct = total > 0 ? Math.round((team.done / total) * 100) : 0;
+  const delta = currDonePct - prevDonePct;
+  const deltaLabel = delta > 0 ? `+${delta}%` : delta < 0 ? `${delta}%` : "—";
+  const deltaClass = delta > 0 ? "scc-team-delta--up" : delta < 0 ? "scc-team-delta--down" : "";
+
+  const updatePrev = (field, val) => onChange("prev", { ...team.prev, [field]: val });
+
+  return (
+    <div className="scc-team-row">
+
+      {/* Name */}
+      <div className="scc-team-name-col">
+        {editing ? (
+          <input
+            className="scc-team-input"
+            placeholder="Team / area name"
+            value={team.name}
+            onChange={(e) => onChange("name", e.target.value)}
+          />
+        ) : (
+          <span className="scc-team-name">{team.name}</span>
+        )}
+      </div>
+
+      {/* Stacked bar */}
+      <div className="scc-team-bar-col">
+        <div className="scc-team-bar-track">
+          <div className="scc-team-bar-done"    style={{ width: `${donePct}%` }} />
+          <div className="scc-team-bar-incomp"  style={{ width: `${incompPct}%` }} />
+        </div>
+        <div className="scc-team-bar-legend">
+          <span className="scc-legend-dot scc-legend-dot--done" />
+          <span className="scc-legend-label">Done</span>
+          <span className="scc-legend-dot scc-legend-dot--incomp" />
+          <span className="scc-legend-label">Incomplete</span>
+          {(team.unestimated ?? 0) > 0 && (
+            <>
+              <span className="scc-legend-dot scc-legend-dot--unest" />
+              <span className="scc-legend-label">Unestimated</span>
+            </>
+          )}
+        </div>
+      </div>
+
+      {/* Stats */}
+      <div className="scc-team-stats-col">
+        {editing ? (
+          <div className="scc-team-edit-grid">
+            <div className="scc-team-edit-cols">
+              <div className="scc-team-edit-group">
+                <span className="scc-team-edit-header">Current sprint</span>
+                <NumField label="Done"        value={team.done}        onChange={(v) => onChange("done", v)} />
+                <NumField label="Incomplete"  value={team.incomplete}  onChange={(v) => onChange("incomplete", v)} />
+                <NumField label="Unestimated" value={team.unestimated} onChange={(v) => onChange("unestimated", v)} />
+              </div>
+              <div className="scc-team-edit-group">
+                <span className="scc-team-edit-header">Previous sprint</span>
+                <NumField label="Done"        value={team.prev?.done ?? 0}        onChange={(v) => updatePrev("done", v)} />
+                <NumField label="Incomplete"  value={team.prev?.incomplete ?? 0}  onChange={(v) => updatePrev("incomplete", v)} />
+                <NumField label="Unestimated" value={team.prev?.unestimated ?? 0} onChange={(v) => updatePrev("unestimated", v)} />
+              </div>
+            </div>
+            <button className="scc-remove-btn scc-team-remove" onClick={onRemove} aria-label="Remove team">✕ Remove team</button>
+          </div>
+        ) : (
+          <div className="scc-team-read-stats">
+            <div className="scc-team-pts-row">
+              <span className="scc-team-pts scc-team-pts--done">{team.done ?? 0} <span className="scc-team-pts-label">done</span></span>
+              <span className="scc-team-pts-sep">/</span>
+              <span className="scc-team-pts scc-team-pts--incomp">{team.incomplete ?? 0} <span className="scc-team-pts-label">incomplete</span></span>
+              {(team.unestimated ?? 0) > 0 && (
+                <>
+                  <span className="scc-team-pts-sep">/</span>
+                  <span className="scc-team-pts scc-team-pts--unest">{team.unestimated} <span className="scc-team-pts-label">unestimated</span></span>
+                </>
+              )}
+            </div>
+            <div className="scc-team-prev-row">
+              <span className="scc-team-meta">
+                Prev: {team.prev?.done ?? 0} done / {team.prev?.incomplete ?? 0} incomplete
+                {(team.prev?.unestimated ?? 0) > 0 && ` / ${team.prev.unestimated} unest.`}
+              </span>
+              <span className={`scc-team-delta ${deltaClass}`}>{deltaLabel}</span>
+            </div>
+          </div>
+        )}
+      </div>
+
+    </div>
+  );
+}
+
+function NumField({ label, value, onChange }) {
+  return (
+    <label className="scc-num-field">
+      <span className="scc-num-field-label">{label}</span>
+      <input
+        className="scc-team-num-input"
+        type="number"
+        min="0"
+        value={value}
+        onChange={(e) => onChange(Number(e.target.value))}
+      />
+    </label>
   );
 }
 
