@@ -1,30 +1,46 @@
 import { useEffect, useRef, useState } from "react";
 import "./StandupCommandCenter.css";
 
-/* ─── Quotes ─────────────────────────────────────────────────────────────── */
-const QUOTES = [
-  { text: "The secret of getting ahead is getting started.", author: "Mark Twain" },
-  { text: "Done is better than perfect.", author: "Sheryl Sandberg" },
-  { text: "Small progress is still progress.", author: "Unknown" },
-  { text: "Focus on being productive instead of busy.", author: "Tim Ferriss" },
-  { text: "It always seems impossible until it's done.", author: "Nelson Mandela" },
-  { text: "Simplicity is the soul of efficiency.", author: "Austin Freeman" },
-  { text: "First, solve the problem. Then, write the code.", author: "John Johnson" },
-  { text: "Make it work, make it right, make it fast.", author: "Kent Beck" },
-  { text: "The best time to start was yesterday. The next best time is now.", author: "Unknown" },
-  { text: "Clarity is the antidote to anxiety.", author: "Unknown" },
-  { text: "Move fast and fix things.", author: "Unknown" },
-  { text: "Every sprint is a chance to improve.", author: "Unknown" },
-  { text: "Velocity is a lagging indicator. Focus on removing blockers.", author: "Unknown" },
-  { text: "Ship early, learn fast.", author: "Unknown" },
+/* ─── Trivia ─────────────────────────────────────────────────────────────── */
+// Replace these 30 questions with your own — format: { q: "question", a: "answer" }
+const TRIVIA = [
+  { q: "Which fruit is technically a berry?", a: "Banana" },
+  { q: "What animal has fingerprints almost identical to humans?", a: "Koala" },
+  { q: "How many hearts does an octopus have?", a: "Three" },
+  { q: "What is the tallest mountain in the world above sea level?", a: "Mount Everest" },
+  { q: "Which country consumes the most coffee per capita?", a: "Finland" },
+  { q: "What is the smallest country in the world?", a: "Vatican City" },
+  { q: "How many bones are in the adult human body?", a: "206" },
+  { q: "Which ocean is the largest?", a: "Pacific Ocean" },
+  { q: "What is the capital of Canada?", a: "Ottawa" },
+  { q: "What is the hardest natural substance on Earth?", a: "Diamond" },
+  { q: "Which language has the most native speakers?", a: "Mandarin Chinese" },
+  { q: "What is the largest mammal in the world?", a: "Blue whale" },
+  { q: "What everyday item was invented because a scientist was trying to create a super-strong adhesive?", a: "Post-it Notes" },
+  { q: "What is the only mammal capable of true flight?", a: "Bat" },
+  { q: "What is the term for a word that reads the same forward and backward?", a: "Palindrome" },
+  { q: "Which element is the most abundant in the universe?", a: "Hydrogen" },
+  { q: "What does the 'P' in the Richter scale measure?", a: "Primary waves" },
+  { q: "What is the name of the deepest point in the ocean?", a: "Challenger Deep" },
+  { q: "Which philosopher is known for the phrase 'I think, therefore I am'?", a: "Descartes" },
+  { q: "What is the only number that is both the sum and product of three consecutive integers?", a: "6" },
+  { q: "What is the study of fungi called?", a: "Mycology" },
+  { q: "Which country has the most time zones?", a: "France" },
+  { q: "What is the term for animals that are active at dawn and dusk?", a: "Crepuscular" },
+  { q: "Which organ uses about 20% of the body's energy?", a: "The brain" },
+  { q: "What is the name for a group of flamingos?", a: "Flamboyance" },
+  { q: "What is the only letter not used in any U.S. state name?", a: "Q" },
+  { q: "What is the largest desert in the world?", a: "Antarctica" },
+  { q: "What is the only even prime number?", a: "2" },
+  { q: "What is the term for fear of long words?", a: "Hippopotomonstrosesquipedaliophobia" },
+  { q: "What is the approximate number of neurons in the human brain?", a: "86 billion" },
 ];
 
-function getTodayQuote() {
-  const now = new Date();
-  const start = new Date(now.getFullYear(), 0, 0);
-  const diff = now - start;
-  const dayOfYear = Math.floor(diff / (1000 * 60 * 60 * 24));
-  return QUOTES[dayOfYear % QUOTES.length];
+// Rotates in order by sprint day number (1-based index into the array).
+// sprintDay 1 → TRIVIA[0], day 2 → TRIVIA[1], etc., wrapping around.
+function getTriviaForDay(sprintDay) {
+  if (sprintDay === null || sprintDay === undefined) return TRIVIA[0];
+  return TRIVIA[(sprintDay - 1) % TRIVIA.length];
 }
 
 /* ─── Sprint day calculation ─────────────────────────────────────────────── */
@@ -108,8 +124,7 @@ const defaultData = {
   done: "18 pts",
   atRisk: "11 pts",
   watch: "17 pts",
-  notes: "",         // rich HTML from the notes editor
-  trivia: "The average standup takes 11 minutes — but feels like 40.",
+  notes: "",
   teams: defaultTeams,
   insights: defaultInsights,
   blocked: "COR-124 blocked by external team.",
@@ -211,9 +226,10 @@ export default function StandupCommandCenter() {
     return null;
   })();
 
+  const [triviaRevealed, setTriviaRevealed] = useState(false);
   const sprintDay = calcSprintDay(data.sprintStart);
   const displayDate = formatDate(data.today || todayISO());
-  const quote = getTodayQuote();
+  const trivia = getTriviaForDay(sprintDay);
 
   const hasTeams = (data.teams ?? []).some(
     (t) => t.name.trim() || t.done > 0 || t.incomplete > 0 || t.unestimated > 0
@@ -233,8 +249,8 @@ export default function StandupCommandCenter() {
           )}
         </div>
         <div className="scc-date-quote">
-          <span className="scc-date-quote-text">"{quote.text}"</span>
-          <span className="scc-date-quote-author">— {quote.author}</span>
+          <span className="scc-date-quote-text">"{trivia.q}"</span>
+          <span className="scc-date-quote-author">trivia</span>
         </div>
       </div>
 
@@ -375,20 +391,16 @@ export default function StandupCommandCenter() {
       )}
 
       {/* Trivia */}
-      {(editing || data.trivia?.trim()) && (
-        <div className="scc-trivia-bar">
-          <span className="scc-trivia-icon">💡</span>
-          {editing ? (
-            <input
-              className="scc-trivia-input"
-              value={data.trivia}
-              onChange={(e) => update("trivia", e.target.value)}
-            />
-          ) : (
-            <span className="scc-trivia-text">{data.trivia}</span>
-          )}
+      <div className="scc-trivia-bar">
+        <span className="scc-trivia-icon">🧠</span>
+        <div className="scc-trivia-body">
+          <span className="scc-trivia-q">{trivia.q}</span>
+          {triviaRevealed
+            ? <span className="scc-trivia-a">{trivia.a}</span>
+            : <button className="scc-trivia-reveal" onClick={() => setTriviaRevealed(true)}>Reveal answer</button>
+          }
         </div>
-      )}
+      </div>
 
       {/* Jira Insights */}
       {(editing || hasInsights) && (
