@@ -608,6 +608,99 @@
   }
 }
 
+/* ─── Rich text notes ────────────────────────────────────────────────────── */
+.scc-notes-editor {
+  border: 1px solid var(--scc-border-hover);
+  border-radius: var(--scc-radius-sm);
+  overflow: hidden;
+}
+
+.scc-notes-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px;
+  padding: 6px 8px;
+  background: var(--scc-surface-2);
+  border-bottom: 1px solid var(--scc-border);
+}
+
+.scc-notes-tool {
+  background: none;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  color: var(--scc-text);
+  font-family: var(--scc-font);
+  font-size: 12px;
+  font-weight: 600;
+  padding: 3px 8px;
+  cursor: pointer;
+  transition: background 0.1s, border-color 0.1s;
+  line-height: 1.4;
+  min-width: 28px;
+  text-align: center;
+}
+
+.scc-notes-tool:hover {
+  background: var(--scc-neutral-bg);
+  border-color: var(--scc-border-hover);
+  color: var(--scc-text-heading);
+}
+
+.scc-notes-content {
+  min-height: 120px;
+  padding: 14px 16px;
+  outline: none;
+  font-family: var(--scc-font);
+  font-size: 14px;
+  line-height: 1.7;
+  color: var(--scc-text);
+  background: var(--scc-surface);
+}
+
+.scc-notes-content:empty::before {
+  content: attr(data-placeholder);
+  color: var(--scc-text-muted);
+  pointer-events: none;
+}
+
+/* View mode — render the saved HTML with sensible typography */
+.scc-notes-view {
+  font-size: 14px;
+  line-height: 1.7;
+  color: var(--scc-text);
+}
+
+.scc-notes-view h2 {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--scc-text-heading);
+  margin: 0 0 6px;
+}
+
+.scc-notes-view h3 {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--scc-text-heading);
+  margin: 12px 0 4px;
+}
+
+.scc-notes-view p {
+  margin: 0 0 8px;
+}
+
+.scc-notes-view ul,
+.scc-notes-view ol {
+  margin: 0 0 8px;
+  padding-left: 22px;
+}
+
+.scc-notes-view li {
+  margin-bottom: 3px;
+}
+
+.scc-notes-view strong { font-weight: 700; color: var(--scc-text-heading); }
+.scc-notes-view em     { font-style: italic; }
+
 /* ─── Trivia bar ─────────────────────────────────────────────────────────── */
 .scc-trivia-bar {
   display: flex;

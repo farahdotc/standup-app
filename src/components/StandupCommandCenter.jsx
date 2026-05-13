@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import "./StandupCommandCenter.css";
 
 /* ─── Quotes ─────────────────────────────────────────────────────────────── */
@@ -101,13 +101,14 @@ const defaultInsights = [
 
 const defaultData = {
   sprintName: "Sprint 12",
-  sprintStart: "",   // YYYY-MM-DD, always a Wednesday
-  today: "",         // YYYY-MM-DD, set each morning
+  sprintStart: "",
+  today: "",
   sprintGoal: "Stabilize COR platform work and reduce carryover risk.",
   committed: "42 pts",
   done: "18 pts",
   atRisk: "11 pts",
   watch: "17 pts",
+  notes: "",         // rich HTML from the notes editor
   trivia: "The average standup takes 11 minutes — but feels like 40.",
   teams: defaultTeams,
   insights: defaultInsights,
@@ -330,6 +331,22 @@ export default function StandupCommandCenter() {
         )}
       </section>
 
+      {/* Notes */}
+      {(editing || data.notes?.trim()) && (
+        <section className="scc-card">
+          <div className="scc-card-header">
+            <h2 className="scc-section-title">
+              <span className="scc-icon">📋</span> Notes
+            </h2>
+          </div>
+          <RichTextEditor
+            value={data.notes}
+            editing={editing}
+            onChange={(v) => update("notes", v)}
+          />
+        </section>
+      )}
+
       {/* Epic Progress */}
       {(editing || hasTeams) && (
         <section className="scc-card">
@@ -423,6 +440,81 @@ export default function StandupCommandCenter() {
           </div>
         </section>
       )}
+    </div>
+  );
+}
+
+/* ─── Rich text editor ───────────────────────────────────────────────────── */
+const TOOLBAR = [
+  { cmd: "bold",          icon: "B",   title: "Bold",          style: { fontWeight: 700 } },
+  { cmd: "italic",        icon: "I",   title: "Italic",        style: { fontStyle: "italic" } },
+  { cmd: "underline",     icon: "U",   title: "Underline",     style: { textDecoration: "underline" } },
+  { cmd: "insertUnorderedList", icon: "•—", title: "Bullet list" },
+  { cmd: "insertOrderedList",   icon: "1.", title: "Numbered list" },
+  { cmd: "formatBlock",   icon: "H1",  title: "Heading 1",     value: "h2" },
+  { cmd: "formatBlock",   icon: "H2",  title: "Heading 2",     value: "h3" },
+  { cmd: "formatBlock",   icon: "¶",   title: "Paragraph",     value: "p" },
+];
+
+function RichTextEditor({ value, editing, onChange }) {
+  const ref = useRef(null);
+  const isInternalChange = useRef(false);
+
+  // Sync incoming value into the DOM only when it changes externally
+  useEffect(() => {
+    if (ref.current && !isInternalChange.current) {
+      if (ref.current.innerHTML !== (value || "")) {
+        ref.current.innerHTML = value || "";
+      }
+    }
+    isInternalChange.current = false;
+  }, [value]);
+
+  const exec = (cmd, val) => {
+    ref.current?.focus();
+    document.execCommand(cmd, false, val ?? null);
+  };
+
+  const handleInput = () => {
+    isInternalChange.current = true;
+    onChange(ref.current.innerHTML);
+  };
+
+  if (!editing) {
+    return (
+      <div
+        className="scc-notes-view"
+        dangerouslySetInnerHTML={{ __html: value || "" }}
+      />
+    );
+  }
+
+  return (
+    <div className="scc-notes-editor">
+      <div className="scc-notes-toolbar">
+        {TOOLBAR.map((btn) => (
+          <button
+            key={btn.cmd + (btn.value ?? "")}
+            className="scc-notes-tool"
+            title={btn.title}
+            style={btn.style}
+            onMouseDown={(e) => {
+              e.preventDefault(); // keep focus in editor
+              exec(btn.cmd, btn.value);
+            }}
+          >
+            {btn.icon}
+          </button>
+        ))}
+      </div>
+      <div
+        ref={ref}
+        className="scc-notes-content"
+        contentEditable
+        suppressContentEditableWarning
+        onInput={handleInput}
+        data-placeholder="Paste or type notes here — formatting is preserved…"
+      />
     </div>
   );
 }
