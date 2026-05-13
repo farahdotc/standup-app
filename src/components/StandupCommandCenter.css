@@ -51,6 +51,97 @@
   box-sizing: border-box;
 }
 
+/* ─── Date banner ────────────────────────────────────────────────────────── */
+.scc-date-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  background: var(--scc-accent);
+  border-radius: var(--scc-radius);
+  padding: 14px 20px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.scc-date-banner-left {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.scc-date-today {
+  font-size: 16px;
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: -0.2px;
+}
+
+.scc-date-sprintday {
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.7);
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 20px;
+  padding: 3px 10px;
+  white-space: nowrap;
+}
+
+.scc-date-quote {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.scc-date-quote-text {
+  font-size: 13px;
+  font-style: italic;
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.scc-date-quote-author {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.55);
+  white-space: nowrap;
+}
+
+/* ─── Date inputs (edit mode) ────────────────────────────────────────────── */
+.scc-date-inputs {
+  display: flex;
+  gap: 16px;
+  margin-top: 8px;
+  flex-wrap: wrap;
+}
+
+.scc-date-label {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--scc-text-muted);
+}
+
+.scc-date-input {
+  background: var(--scc-surface-2);
+  border: 1px solid var(--scc-border-hover);
+  border-radius: var(--scc-radius-sm);
+  color: var(--scc-text-heading);
+  font-family: var(--scc-font);
+  font-size: 13px;
+  padding: 5px 8px;
+  outline: none;
+  cursor: pointer;
+}
+
+.scc-date-input:focus {
+  border-color: var(--scc-accent);
+}
+
 /* ─── Header ─────────────────────────────────────────────────────────────── */
 .scc-header {
   display: flex;
@@ -307,7 +398,7 @@
   line-height: 1.65;
 }
 
-/* ─── Team progress ──────────────────────────────────────────────────────── */
+/* ─── Epic progress ──────────────────────────────────────────────────────── */
 .scc-teams {
   display: flex;
   flex-direction: column;

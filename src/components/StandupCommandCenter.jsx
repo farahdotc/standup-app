@@ -1,6 +1,66 @@
 import { useEffect, useState } from "react";
 import "./StandupCommandCenter.css";
 
+/* ─── Quotes ─────────────────────────────────────────────────────────────── */
+const QUOTES = [
+  { text: "The secret of getting ahead is getting started.", author: "Mark Twain" },
+  { text: "Done is better than perfect.", author: "Sheryl Sandberg" },
+  { text: "Small progress is still progress.", author: "Unknown" },
+  { text: "Focus on being productive instead of busy.", author: "Tim Ferriss" },
+  { text: "It always seems impossible until it's done.", author: "Nelson Mandela" },
+  { text: "Simplicity is the soul of efficiency.", author: "Austin Freeman" },
+  { text: "First, solve the problem. Then, write the code.", author: "John Johnson" },
+  { text: "Make it work, make it right, make it fast.", author: "Kent Beck" },
+  { text: "The best time to start was yesterday. The next best time is now.", author: "Unknown" },
+  { text: "Clarity is the antidote to anxiety.", author: "Unknown" },
+  { text: "Move fast and fix things.", author: "Unknown" },
+  { text: "Every sprint is a chance to improve.", author: "Unknown" },
+  { text: "Velocity is a lagging indicator. Focus on removing blockers.", author: "Unknown" },
+  { text: "Ship early, learn fast.", author: "Unknown" },
+];
+
+function getTodayQuote() {
+  const now = new Date();
+  const start = new Date(now.getFullYear(), 0, 0);
+  const diff = now - start;
+  const dayOfYear = Math.floor(diff / (1000 * 60 * 60 * 24));
+  return QUOTES[dayOfYear % QUOTES.length];
+}
+
+/* ─── Sprint day calculation ─────────────────────────────────────────────── */
+// Counts business days (Mon–Fri) from sprintStart up to and including today, max 10.
+function calcSprintDay(sprintStartStr) {
+  if (!sprintStartStr) return null;
+  const [y, m, d] = sprintStartStr.split("-").map(Number);
+  const start = new Date(y, m - 1, d);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  start.setHours(0, 0, 0, 0);
+  if (today < start) return null;
+
+  let bizDays = 0;
+  const cursor = new Date(start);
+  while (cursor <= today) {
+    const dow = cursor.getDay();
+    if (dow !== 0 && dow !== 6) bizDays++;
+    cursor.setDate(cursor.getDate() + 1);
+  }
+  return Math.min(bizDays, 10);
+}
+
+function formatDate(dateStr) {
+  if (!dateStr) return "";
+  const [y, m, d] = dateStr.split("-").map(Number);
+  return new Date(y, m - 1, d).toLocaleDateString("en-US", {
+    weekday: "long", month: "long", day: "numeric", year: "numeric",
+  });
+}
+
+function todayISO() {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+}
+
 const defaultTeams = [
   {
     id: 1,
@@ -41,7 +101,8 @@ const defaultInsights = [
 
 const defaultData = {
   sprintName: "Sprint 12",
-  sprintDay: "Day 6 of 10",
+  sprintStart: "",   // YYYY-MM-DD, always a Wednesday
+  today: "",         // YYYY-MM-DD, set each morning
   sprintGoal: "Stabilize COR platform work and reduce carryover risk.",
   committed: "42 pts",
   done: "18 pts",
@@ -149,6 +210,10 @@ export default function StandupCommandCenter() {
     return null;
   })();
 
+  const sprintDay = calcSprintDay(data.sprintStart);
+  const displayDate = formatDate(data.today || todayISO());
+  const quote = getTodayQuote();
+
   const hasTeams = (data.teams ?? []).some(
     (t) => t.name.trim() || t.done > 0 || t.incomplete > 0 || t.unestimated > 0
   );
@@ -157,6 +222,21 @@ export default function StandupCommandCenter() {
 
   return (
     <div className="scc-page">
+
+      {/* Date banner */}
+      <div className="scc-date-banner">
+        <div className="scc-date-banner-left">
+          <span className="scc-date-today">{displayDate}</span>
+          {sprintDay !== null && (
+            <span className="scc-date-sprintday">Day {sprintDay} of 10</span>
+          )}
+        </div>
+        <div className="scc-date-quote">
+          <span className="scc-date-quote-text">"{quote.text}"</span>
+          <span className="scc-date-quote-author">— {quote.author}</span>
+        </div>
+      </div>
+
       {/* Header */}
       <header className="scc-header">
         <div className="scc-header-left">
@@ -172,17 +252,28 @@ export default function StandupCommandCenter() {
                 data.sprintName
               )}
             </h1>
-            <p className="scc-subtitle">
-              {editing ? (
-                <input
-                  className="scc-inline-input scc-inline-input--sm"
-                  value={data.sprintDay}
-                  onChange={(e) => update("sprintDay", e.target.value)}
-                />
-              ) : (
-                data.sprintDay
-              )}
-            </p>
+            {editing && (
+              <div className="scc-date-inputs">
+                <label className="scc-date-label">
+                  Sprint start (Wed)
+                  <input
+                    type="date"
+                    className="scc-date-input"
+                    value={data.sprintStart}
+                    onChange={(e) => update("sprintStart", e.target.value)}
+                  />
+                </label>
+                <label className="scc-date-label">
+                  Today
+                  <input
+                    type="date"
+                    className="scc-date-input"
+                    value={data.today || todayISO()}
+                    onChange={(e) => update("today", e.target.value)}
+                  />
+                </label>
+              </div>
+            )}
           </div>
         </div>
         <button
@@ -216,14 +307,14 @@ export default function StandupCommandCenter() {
           {(editing || data.committed?.trim()) && (
             <MetricCard label="Committed" value={data.committed} variant="neutral" editing={editing} onChange={(v) => update("committed", v)} />
           )}
-          {(editing || data.done?.trim()) && (
-            <MetricCard label="Done" value={data.done} variant="success" editing={editing} onChange={(v) => update("done", v)} />
-          )}
           {(editing || data.atRisk?.trim()) && (
             <MetricCard label="At Risk" value={data.atRisk} variant="warning" editing={editing} onChange={(v) => update("atRisk", v)} />
           )}
           {(editing || data.watch?.trim()) && (
             <MetricCard label="Watch" value={data.watch} variant="warning" editing={editing} onChange={(v) => update("watch", v)} />
+          )}
+                    {(editing || data.done?.trim()) && (
+            <MetricCard label="Done" value={data.done} variant="success" editing={editing} onChange={(v) => update("done", v)} />
           )}
         </div>
 
@@ -239,12 +330,12 @@ export default function StandupCommandCenter() {
         )}
       </section>
 
-      {/* Team Progress */}
+      {/* Epic Progress */}
       {(editing || hasTeams) && (
         <section className="scc-card">
           <div className="scc-card-header">
             <h2 className="scc-section-title">
-              <span className="scc-icon">▲</span> Team Progress
+              <span className="scc-icon">▲</span> Epic Progress
             </h2>
             {editing && (
               <button className="scc-btn scc-btn--sm" onClick={addTeam}>+ Add</button>
@@ -327,7 +418,7 @@ export default function StandupCommandCenter() {
               <RiskItem label="QA › 2 days" value={data.qaRisk} variant="warning" editing={editing} onChange={(v) => update("qaRisk", v)} />
             )}
             {(editing || data.largeNotInQA?.trim()) && (
-              <RiskItem label="Large not in QA" value={data.largeNotInQA} variant="info" editing={editing} onChange={(v) => update("largeNotInQA", v)} />
+              <RiskItem label="In progress › 3 days" value={data.largeNotInQA} variant="info" editing={editing} onChange={(v) => update("largeNotInQA", v)} />
             )}
           </div>
         </section>
