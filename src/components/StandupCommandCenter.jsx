@@ -338,11 +338,11 @@ export default function StandupCommandCenter() {
         {(editing || data.sprintGoal?.trim()) && (
           <div className="scc-goal">
             <span className="scc-field-label">Sprint Goal</span>
-            {editing ? (
-              <textarea className="scc-textarea" value={data.sprintGoal} onChange={(e) => update("sprintGoal", e.target.value)} />
-            ) : (
-              <p className="scc-goal-text">{data.sprintGoal}</p>
-            )}
+            <RichTextEditor
+              value={data.sprintGoal}
+              editing={editing}
+              onChange={(v) => update("sprintGoal", v)}
+            />
           </div>
         )}
       </section>
