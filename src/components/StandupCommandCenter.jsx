@@ -2,34 +2,56 @@ import { useEffect, useRef, useState } from "react";
 import "./StandupCommandCenter.css";
 
 /* ─── Trivia ─────────────────────────────────────────────────────────────── */
-// Replace these 30 questions with your own — format: { q: "question", a: "answer" }
 const TRIVIA = [
-  { q: "Which fruit is technically a berry?", a: "Banana" },
-  { q: "What is the capital of Canada?", a: "Ottawa" },
-  { q: "Which language has the most native speakers?", a: "Mandarin Chinese" },
-  { q: "What everyday item was invented because a scientist was trying to create a super-strong adhesive?", a: "Post-it Notes" },
-  { q: "What is the only mammal capable of true flight?", a: "Bat" },
-  { q: "Which element is the most abundant in the universe?", a: "Hydrogen" },
-  { q: "What does the 'P' in the Richter scale measure?", a: "Primary waves" },
-  { q: "What is the name of the deepest point in the ocean?", a: "Challenger Deep" },
-  { q: "Which philosopher is known for the phrase 'I think, therefore I am'?", a: "Descartes" },
-  { q: "What is the only number that is both the sum and product of three consecutive integers?", a: "6" },
-  { q: "What is the study of fungi called?", a: "Mycology" },
-  { q: "Which country has the most time zones?", a: "France" },
-  { q: "What is the term for animals that are active at dawn and dusk?", a: "Crepuscular" },
-  { q: "What is the name for a group of flamingos?", a: "Flamboyance" },
-  { q: "What is the only letter not used in any U.S. state name?", a: "Q" },
-  { q: "What is the largest desert in the world?", a: "Antarctica" },
-  { q: "What is the only even prime number?", a: "2" },
-  { q: "What is the term for fear of long words?", a: "Hippopotomonstrosesquipedaliophobia" },
-  { q: "What is the approximate number of neurons in the human brain?", a: "86 billion" },
+  { q: "Kissing someone for one minute burns about 2 calories.", a: "True" },
+  { q: '"Buffalo buffalo Buffalo buffalo buffalo buffalo Buffalo buffalo." is a grammatically correct sentence.', a: "True" },
+  { q: "Furby was released in 1998.", a: "True" },
+  { q: "Only a small percentage of the world's population is lactose intolerant.", a: "False" },
+  { q: "Crystal Pepsi was first sold in US markets in 1993.", a: "False" },
+  { q: "Popcorn was invented in 1871 by Frederick W. Rueckheim in the USA where he sold the snack on the streets of Chicago.", a: "False" },
+  { q: "The sum of all the numbers on a roulette wheel is 666.", a: "True" },
+  { q: 'Kraft "Cheez Whiz" contains cheese culture, but doesn\'t actually contain cheese.', a: "True" },
+  { q: "Coca-Cola's original colour was green.", a: "False" },
+  { q: '"Typewriter" is the longest word that can be typed using only the first row on a QWERTY keyboard.', a: "False" },
+  { q: 'Don Cheto is the host of the radio station "East Los FM" in GTA V.', a: "True" },
+  { q: "The vapor produced by e-cigarettes is actually water.", a: "False" },
+  { q: 'The French word for "glass" is "glace".', a: "False" },
+  { q: 'The word "news" originates from the first letters of the 4 main directions on a compass (North, East, West, South).', a: "False" },
+  { q: '"Santa Claus" is a variety of melon.', a: "True" },
+  { q: "Fast food restaurant chains Carl's Jr. and Hardee's are owned by the same company.", a: "True" },
+  { q: "The US emergency hotline is 911 because of the September 11th terrorist attacks.", a: "False" },
+  { q: "The Happy Face was created by commercial artist Harvey Ball.", a: "True" },
+  { q: "Pure water effectively conducts electricity.", a: "False" },
+  { q: "The British organisation CAMRA stands for The Campaign for Real Ale.", a: "True" },
+  { q: "The pickled gherkin was first added to hamburgers because a US health law required all fast-food to include a source of Vitamin C.", a: "False" },
+  { q: 'The French word to travel is "Travail".', a: "False" },
+  { q: 'The term "Spam" came before the food product "Spam".', a: "False" },
+  { q: 'The bikini is named after the "Bikini Atoll", an island where the United States conducted tests on atomic bombs.', a: "True" },
+  { q: "Haggis is traditionally eaten on Burns Night.", a: "True" },
+  { q: 'SCP-173 was the first SCP article written for the web-based collaborative fiction project known as the "SCP Foundation".', a: "True" },
+  { q: "An eggplant is a vegetable.", a: "False" },
+  { q: "A pencil's lead is typically made from graphite, not lead.", a: "True" },
+  { q: "Sitting for more than three hours a day can cut two years off a person's life expectancy.", a: "True" },
+  { q: "The scientific name for the Southern Lights is Aurora Australis.", a: "True" },
+  { q: 'The commercial UK channel ITV stands for "International Television".', a: "False" },
+  { q: "Francis Bacon died from a fatal case of pneumonia while attempting to preserve meat by stuffing a chicken with snow.", a: "True" },
+  { q: "The original Jack-o-Lanterns were actually hollowed out turnips.", a: "True" },
+  { q: "Albert Einstein had trouble with mathematics when he was in school.", a: "False" },
+  { q: "The average woman is 5 inches / 13 centimeters shorter than the average man.", a: "True" },
+  { q: "Ecuador uses the Mexican Peso as its currency.", a: "False" },
+  { q: "There are 86,400 seconds in a day.", a: "True" },
+  { q: "You are allowed to sell your soul on eBay.", a: "False" },
+  { q: "Cucumbers are usually more than 90% water.", a: "True" },
+  { q: "Instant mashed potatoes were invented by Canadian Edward Asselbergs in 1962.", a: "True" },
 ];
 
-// Rotates in order by sprint day number (1-based index into the array).
-// sprintDay 1 → TRIVIA[0], day 2 → TRIVIA[1], etc., wrapping around.
+// 2 questions per day, cycling through all 40 (20 days before repeating).
 function getTriviaForDay(sprintDay) {
-  if (sprintDay === null || sprintDay === undefined) return TRIVIA[0];
-  return TRIVIA[(sprintDay - 1) % TRIVIA.length];
+  const idx = ((sprintDay ?? 1) - 1) * 2;
+  return [
+    TRIVIA[idx % TRIVIA.length],
+    TRIVIA[(idx + 1) % TRIVIA.length],
+  ];
 }
 
 /* ─── Sprint day calculation ─────────────────────────────────────────────── */
@@ -215,7 +237,7 @@ export default function StandupCommandCenter() {
     return null;
   })();
 
-  const [triviaRevealed, setTriviaRevealed] = useState(false);
+  const [triviaRevealed, setTriviaRevealed] = useState([false, false]);
   const sprintDay = calcSprintDay(data.sprintStart);
   const displayDate = formatDate(data.today || todayISO());
   const trivia = getTriviaForDay(sprintDay);
@@ -238,8 +260,8 @@ export default function StandupCommandCenter() {
           )}
         </div>
         <div className="scc-date-quote">
-          <span className="scc-date-quote-text">"{trivia.q}"</span>
-          <span className="scc-date-quote-author">trivia</span>
+          <span className="scc-date-quote-text">🧠 True or False?</span>
+          <span className="scc-date-quote-author">trivia time</span>
         </div>
       </div>
 
@@ -382,12 +404,19 @@ export default function StandupCommandCenter() {
       {/* Trivia */}
       <div className="scc-trivia-bar">
         <span className="scc-trivia-icon">🧠</span>
-        <div className="scc-trivia-body">
-          <span className="scc-trivia-q">{trivia.q}</span>
-          {triviaRevealed
-            ? <span className="scc-trivia-a">{trivia.a}</span>
-            : <button className="scc-trivia-reveal" onClick={() => setTriviaRevealed(true)}>Reveal answer</button>
-          }
+        <div className="scc-trivia-questions">
+          {trivia.map((item, i) => (
+            <div key={i} className="scc-trivia-item">
+              <span className="scc-trivia-num">{i + 1}</span>
+              <div className="scc-trivia-body">
+                <span className="scc-trivia-q">{item.q}</span>
+                {triviaRevealed[i]
+                  ? <span className={`scc-trivia-a scc-trivia-a--${item.a.toLowerCase()}`}>{item.a}</span>
+                  : <button className="scc-trivia-reveal" onClick={() => setTriviaRevealed((prev) => prev.map((v, j) => j === i ? true : v))}>Reveal</button>
+                }
+              </div>
+            </div>
+          ))}
         </div>
       </div>
 
