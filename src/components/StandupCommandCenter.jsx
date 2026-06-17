@@ -59,51 +59,61 @@ function _getTriviaForDay(sprintDay) {
 void TRIVIA;
 
 /* ─── Team facts ─────────────────────────────────────────────────────────── */
-// Matched from survey responses — fact revealed first, name revealed on click
+// Facts and reveal key are intentionally separated.
+// TEAM_FACTS powers the daily clue. TEAM_REVEAL_KEY maps code → name only when Reveal is clicked.
 const TEAM_FACTS = [
   {
-    fact: "I love chocolate.",
-    pro: "My first job was at The GAP.",
-    name: "Farah",
+    code: "2783",
+    fact: "I once drank whiskey with Dave Grohl and his wife",
+    pro: "I started my career in M&A"
   },
   {
-    fact: "I once drank whiskey with Dave Grohl and his wife.",
-    pro: "I started my career in M&A.",
-    name: "Steve",
+    code: "2929",
+    fact: "I used to be a photographer and had one of my pictures published on BBC Travel magazine",
+    pro: "I have been working remotely for 15+ years now."
   },
   {
-    fact: "I used to be a photographer and had one of my pictures published on BBC Travel magazine.",
-    pro: "I have been working remotely for 15+ years.",
-    name: "Febian",
+    code: "4499",
+    fact: "I competed in the 2018 World Duathlon Championships in Denmark as a member of Team USA",
+    pro: "I was the original creator of Staples.com"
   },
   {
-    fact: "I competed in the 2018 World Duathlon Championships in Denmark as a member of Team USA.",
-    pro: "I was the original creator of Staples.com.",
-    name: "Tom",
+    code: "1590",
+    fact: "I've ridden camels through the Sahara Desert",
+    pro: "My first career role was a data engineer at an electric utility company"
   },
   {
-    fact: "I've ridden camels through the Sahara Desert.",
-    pro: "My first career role was a data engineer at an electric utility company.",
-    name: "Elise",
+    code: "2421",
+    fact: "I have lived on a small island",
+    pro: "I worked at a Weather Channel....never on TV!"
   },
   {
-    fact: "I have lived on a small island.",
-    pro: "I worked at The Weather Channel — never on TV!",
-    name: "Jean",
+    code: "0010",
+    fact: "I once ran a 4-hour Spartan Race in Iceland",
+    pro: "My dog lays by my feet during the majority of my work meetings"
   },
   {
-    fact: "I once ran a 4-hour Spartan Race in Iceland.",
-    pro: "My dog lays by my feet during the majority of my work meetings.",
-    name: "Jean",
-  },
-  {
-    fact: "I have been to the most southern points of South America and Africa.",
-    pro: "My first job was at Cold Stone.",
-    name: "Michelle",
-  },
+    code: "1017",
+    fact: "I have been to the most southern points of South America and Africa",
+    pro: "My first job was at Cold Stone"
+  }
 ];
 
-// One random-feeling fact per weekday. Weekends reuse Friday's fact.
+const TEAM_REVEAL_KEY = {
+  "0934": "Farah",
+  "2783": "Steve",
+  "2929": "Febian",
+  "4499": "Tom",
+  "1590": "Elise",
+  "0010": "Jean",
+  "1017": "Michelle",
+};
+
+function getNameForCode(code) {
+  return TEAM_REVEAL_KEY[code] ?? `Unknown code ${code}`;
+}
+
+// One random-feeling clue per weekday. Weekends reuse Friday's clue.
 function getWeekdayKey(dateInput = new Date()) {
   const d = new Date(dateInput);
   const day = d.getDay();
@@ -124,6 +134,21 @@ function seededFactIndex(key, offset = 0) {
   }
 
   return (hash + offset) % TEAM_FACTS.length;
+}
+
+function getFactForDay(key, offset = 0) {
+  const person = TEAM_FACTS[seededFactIndex(key, offset)];
+
+  // Pick either the personal or professional clue, but show only one.
+  const useProfessional =
+    person.pro &&
+    ((seededFactIndex(key, offset + 100) % 2) === 0);
+
+  return {
+    code: person.code,
+    name: getNameForCode(person.code),
+    clue: useProfessional ? person.pro : person.fact,
+  };
 }
 
 
@@ -315,20 +340,7 @@ export default function StandupCommandCenter() {
   const sprintDay = calcSprintDay(data.sprintStart);
   const displayDate = formatDate(data.today || todayISO());
   const weekdayKey = getWeekdayKey(data.today || todayISO());
-  function getFactForDay(key, offset = 0) {
-  const person = TEAM_FACTS[seededFactIndex(key, offset)];
-
-  const useProfessional =
-    person.pro &&
-    ((seededFactIndex(key, offset + 100) % 2) === 0);
-
-  return {
-    name: person.name,
-    clue: useProfessional ? person.pro : person.fact,
-  };
-}
-
-const teamFact = getFactForDay(weekdayKey, factOffset);
+  const teamFact = getFactForDay(weekdayKey, factOffset);
 
   const hasTeams = (data.teams ?? []).some(
     (t) => t.name.trim() || t.done > 0 || t.incomplete > 0 || t.unestimated > 0
@@ -494,7 +506,7 @@ const teamFact = getFactForDay(weekdayKey, factOffset);
         <span className="scc-fact-icon">👤</span>
         <div className="scc-fact-body">
           <span className="scc-fact-label">Who on the team…</span>
-         <span className="scc-fact-text">{teamFact.clue}</span>
+          <span className="scc-fact-text">{teamFact.clue}</span>
           <div className="scc-fact-reveal-row">
             {factRevealed ? (
               <span className="scc-fact-name">👋 {teamFact.name}</span>
