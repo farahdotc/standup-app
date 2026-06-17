@@ -1123,3 +1123,12 @@
     font-size: 22px;
   }
 }
+
+.scc-fact-advance {
+  opacity: 0.18;
+  padding-inline: 8px;
+}
+
+.scc-fact-advance:hover {
+  opacity: 1;
+}

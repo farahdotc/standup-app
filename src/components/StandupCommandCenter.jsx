@@ -103,9 +103,27 @@ const TEAM_FACTS = [
   },
 ];
 
-// One fact per sprint day, cycling through the list
-function getFactForDay(sprintDay) {
-  return TEAM_FACTS[((sprintDay ?? 1) - 1) % TEAM_FACTS.length];
+// One random-feeling fact per weekday. Weekends reuse Friday's fact.
+function getWeekdayKey(dateInput = new Date()) {
+  const d = new Date(dateInput);
+  const day = d.getDay();
+
+  // Saturday/Sunday should not create a new fact.
+  // They reuse Friday's fact instead.
+  if (day === 6) d.setDate(d.getDate() - 1);
+  if (day === 0) d.setDate(d.getDate() - 2);
+
+  return `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`;
+}
+
+function seededFactIndex(key, offset = 0) {
+  let hash = 0;
+
+  for (let i = 0; i < key.length; i++) {
+    hash = (hash * 31 + key.charCodeAt(i)) % TEAM_FACTS.length;
+  }
+
+  return (hash + offset) % TEAM_FACTS.length;
 }
 
 
@@ -292,9 +310,25 @@ export default function StandupCommandCenter() {
   })();
 
   const [factRevealed, setFactRevealed] = useState(false);
+  const [factOffset, setFactOffset] = useState(0);
+
   const sprintDay = calcSprintDay(data.sprintStart);
   const displayDate = formatDate(data.today || todayISO());
-  const teamFact = getFactForDay(sprintDay);
+  const weekdayKey = getWeekdayKey(data.today || todayISO());
+  function getFactForDay(key, offset = 0) {
+  const person = TEAM_FACTS[seededFactIndex(key, offset)];
+
+  const useProfessional =
+    person.pro &&
+    ((seededFactIndex(key, offset + 100) % 2) === 0);
+
+  return {
+    name: person.name,
+    clue: useProfessional ? person.pro : person.fact,
+  };
+}
+
+const teamFact = getFactForDay(weekdayKey, factOffset);
 
   const hasTeams = (data.teams ?? []).some(
     (t) => t.name.trim() || t.done > 0 || t.incomplete > 0 || t.unestimated > 0
@@ -460,15 +494,32 @@ export default function StandupCommandCenter() {
         <span className="scc-fact-icon">👤</span>
         <div className="scc-fact-body">
           <span className="scc-fact-label">Who on the team…</span>
-          <span className="scc-fact-text">{teamFact.fact}</span>
-          {teamFact.pro && (
-            <span className="scc-fact-pro">Also: {teamFact.pro}</span>
-          )}
+         <span className="scc-fact-text">{teamFact.clue}</span>
           <div className="scc-fact-reveal-row">
-            {factRevealed
-              ? <span className="scc-fact-name">👋 {teamFact.name}</span>
-              : <button className="scc-trivia-reveal" onClick={() => setFactRevealed(true)}>Reveal who</button>
-            }
+            {factRevealed ? (
+              <span className="scc-fact-name">👋 {teamFact.name}</span>
+            ) : (
+              <>
+                <button
+                  className="scc-trivia-reveal"
+                  onClick={() => setFactRevealed(true)}
+                >
+                  Reveal who
+                </button>
+
+                <button
+                  className="scc-trivia-reveal scc-fact-advance"
+                  title="Advance fact"
+                  aria-label="Advance to another fact"
+                  onClick={() => {
+                    setFactRevealed(false);
+                    setFactOffset((prev) => prev + 1);
+                  }}
+                >
+                  →
+                </button>
+              </>
+            )}
           </div>
         </div>
       </div>
