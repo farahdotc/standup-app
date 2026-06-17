@@ -348,8 +348,8 @@ const teamFact = getFactForDay(weekdayKey, factOffset);
           )}
         </div>
         <div className="scc-date-quote">
-          <span className="scc-date-quote-text">🧠 True or False?</span>
-          <span className="scc-date-quote-author">trivia time</span>
+          <span className="scc-date-quote-text">{teamFact.clue}</span>
+          {/* <span className="scc-date-quote-author">trivia time</span> */}
         </div>
       </div>
 
