@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import "./StandupCommandCenter.css";
 
-/* ─── Trivia ─────────────────────────────────────────────────────────────── */
+/* ─── Trivia (preserved for future use) ─────────────────────────────────── */
 const TRIVIA = [
   { q: "Kissing someone for one minute burns about 2 calories.", a: "True" },
   { q: '"Buffalo buffalo Buffalo buffalo buffalo buffalo Buffalo buffalo." is a grammatically correct sentence.', a: "True" },
@@ -45,16 +45,70 @@ const TRIVIA = [
   { q: "Instant mashed potatoes were invented by Canadian Edward Asselbergs in 1962.", a: "True" },
 ];
 
-// 2 questions per day, cycling through all 40 (20 days before repeating).
-function getTriviaForDay(sprintDay) {
+/* Trivia logic preserved for future use:
+function _getTriviaForDay(sprintDay) {
   const idx = ((sprintDay ?? 1) - 1) * 2;
   return [
     TRIVIA[idx % TRIVIA.length],
     TRIVIA[(idx + 1) % TRIVIA.length],
   ];
 }
+*/
 
-/* ─── Sprint day calculation ─────────────────────────────────────────────── */
+// Keep TRIVIA available for when trivia mode is re-enabled
+void TRIVIA;
+
+/* ─── Team facts ─────────────────────────────────────────────────────────── */
+// Matched from survey responses — fact revealed first, name revealed on click
+const TEAM_FACTS = [
+  {
+    fact: "I love chocolate.",
+    pro: "My first job was at The GAP.",
+    name: "Farah",
+  },
+  {
+    fact: "I once drank whiskey with Dave Grohl and his wife.",
+    pro: "I started my career in M&A.",
+    name: "Steve",
+  },
+  {
+    fact: "I used to be a photographer and had one of my pictures published on BBC Travel magazine.",
+    pro: "I have been working remotely for 15+ years.",
+    name: "Febian",
+  },
+  {
+    fact: "I competed in the 2018 World Duathlon Championships in Denmark as a member of Team USA.",
+    pro: "I was the original creator of Staples.com.",
+    name: "Tom",
+  },
+  {
+    fact: "I've ridden camels through the Sahara Desert.",
+    pro: "My first career role was a data engineer at an electric utility company.",
+    name: "Elise",
+  },
+  {
+    fact: "I have lived on a small island.",
+    pro: "I worked at The Weather Channel — never on TV!",
+    name: "Jean",
+  },
+  {
+    fact: "I once ran a 4-hour Spartan Race in Iceland.",
+    pro: "My dog lays by my feet during the majority of my work meetings.",
+    name: "Jean",
+  },
+  {
+    fact: "I have been to the most southern points of South America and Africa.",
+    pro: "My first job was at Cold Stone.",
+    name: "Michelle",
+  },
+];
+
+// One fact per sprint day, cycling through the list
+function getFactForDay(sprintDay) {
+  return TEAM_FACTS[((sprintDay ?? 1) - 1) % TEAM_FACTS.length];
+}
+
+
 // Counts business days (Mon–Fri) from sprintStart up to and including today, max 10.
 function calcSprintDay(sprintStartStr) {
   if (!sprintStartStr) return null;
@@ -237,10 +291,10 @@ export default function StandupCommandCenter() {
     return null;
   })();
 
-  const [triviaRevealed, setTriviaRevealed] = useState([false, false]);
+  const [factRevealed, setFactRevealed] = useState(false);
   const sprintDay = calcSprintDay(data.sprintStart);
   const displayDate = formatDate(data.today || todayISO());
-  const trivia = getTriviaForDay(sprintDay);
+  const teamFact = getFactForDay(sprintDay);
 
   const hasTeams = (data.teams ?? []).some(
     (t) => t.name.trim() || t.done > 0 || t.incomplete > 0 || t.unestimated > 0
@@ -401,7 +455,25 @@ export default function StandupCommandCenter() {
         </section>
       )}
 
-      {/* Trivia */}
+      {/* Team Fact */}
+      <div className="scc-fact-bar">
+        <span className="scc-fact-icon">👤</span>
+        <div className="scc-fact-body">
+          <span className="scc-fact-label">Who on the team…</span>
+          <span className="scc-fact-text">{teamFact.fact}</span>
+          {teamFact.pro && (
+            <span className="scc-fact-pro">Also: {teamFact.pro}</span>
+          )}
+          <div className="scc-fact-reveal-row">
+            {factRevealed
+              ? <span className="scc-fact-name">👋 {teamFact.name}</span>
+              : <button className="scc-trivia-reveal" onClick={() => setFactRevealed(true)}>Reveal who</button>
+            }
+          </div>
+        </div>
+      </div>
+
+      {/* Trivia — hidden, keeping code for later
       <div className="scc-trivia-bar">
         <span className="scc-trivia-icon">🧠</span>
         <div className="scc-trivia-questions">
@@ -419,6 +491,7 @@ export default function StandupCommandCenter() {
           ))}
         </div>
       </div>
+      */}
 
       {/* Jira Insights */}
       {(editing || hasInsights) && (
