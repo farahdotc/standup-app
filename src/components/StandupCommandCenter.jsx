@@ -1,4 +1,6 @@
 import { useEffect, useRef, useState } from "react";
+import { db } from "../firebase";
+import { collection, getDocs, doc, updateDoc, serverTimestamp } from "firebase/firestore";
 import "./StandupCommandCenter.css";
 
 /* ─── Trivia (preserved for future use) ─────────────────────────────────── */
@@ -58,96 +60,20 @@ function _getTriviaForDay(sprintDay) {
 // Keep TRIVIA available for when trivia mode is re-enabled
 void TRIVIA;
 
-/* ─── Team facts ─────────────────────────────────────────────────────────── */
-// Facts and reveal key are intentionally separated.
-// TEAM_FACTS powers the daily clue. TEAM_REVEAL_KEY maps code → name only when Reveal is clicked.
-const TEAM_FACTS = [
-  {
-    code: "2783",
-    fact: "I once drank whiskey with Dave Grohl and his wife",
-    pro: "I started my career in M&A"
-  },
-  {
-    code: "2929",
-    fact: "I used to be a photographer and had one of my pictures published on BBC Travel magazine",
-    pro: "I have been working remotely for 15+ years now."
-  },
-  {
-    code: "4499",
-    fact: "I competed in the 2018 World Duathlon Championships in Denmark as a member of Team USA",
-    pro: "I was the original creator of Staples.com"
-  },
-  {
-    code: "1590",
-    fact: "I've ridden camels through the Sahara Desert",
-    pro: "My first career role was a data engineer at an electric utility company"
-  },
-  {
-    code: "2421",
-    fact: "I have lived on a small island",
-    pro: "I worked at a Weather Channel....never on TV!"
-  },
-  {
-    code: "0010",
-    fact: "I once ran a 4-hour Spartan Race in Iceland",
-    pro: "My dog lays by my feet during the majority of my work meetings"
-  },
-  {
-    code: "1017",
-    fact: "I have been to the most southern points of South America and Africa",
-    pro: "My first job was at Cold Stone"
-  }
-];
-
-const TEAM_REVEAL_KEY = {
-  "0934": "Farah",
-  "2783": "Steve",
-  "2929": "Febian",
-  "4499": "Tom",
-  "1590": "Elise",
-  "0010": "Jean",
-  "1017": "Michelle",
-};
-
-function getNameForCode(code) {
-  return TEAM_REVEAL_KEY[code] ?? `Unknown code ${code}`;
+/* ─── Team facts (Firestore) ─────────────────────────────────────────────── */
+function pickRandom(pool, excludeId = null) {
+  const candidates = excludeId ? pool.filter(f => f.id !== excludeId) : pool;
+  if (candidates.length === 0) return pool[0] ?? null;
+  return candidates[Math.floor(Math.random() * candidates.length)];
 }
 
-// One random-feeling clue per weekday. Weekends reuse Friday's clue.
-function getWeekdayKey(dateInput = new Date()) {
-  const d = new Date(dateInput);
-  const day = d.getDay();
-
-  // Saturday/Sunday should not create a new fact.
-  // They reuse Friday's fact instead.
-  if (day === 6) d.setDate(d.getDate() - 1);
-  if (day === 0) d.setDate(d.getDate() - 2);
-
-  return `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`;
-}
-
-function seededFactIndex(key, offset = 0) {
-  let hash = 0;
-
-  for (let i = 0; i < key.length; i++) {
-    hash = (hash * 31 + key.charCodeAt(i)) % TEAM_FACTS.length;
-  }
-
-  return (hash + offset) % TEAM_FACTS.length;
-}
-
-function getFactForDay(key, offset = 0) {
-  const person = TEAM_FACTS[seededFactIndex(key, offset)];
-
-  // Pick either the personal or professional clue, but show only one.
-  const useProfessional =
-    person.pro &&
-    ((seededFactIndex(key, offset + 100) % 2) === 0);
-
+function buildDisplayFact(fact, peopleMap) {
+  if (!fact) return null;
+  const usePro = fact.pro && Math.random() < 0.5;
   return {
-    code: person.code,
-    name: getNameForCode(person.code),
-    clue: useProfessional ? person.pro : person.fact,
+    ...fact,
+    clue: usePro ? fact.pro : fact.fact,
+    name: peopleMap[fact.code] ?? "???",
   };
 }
 
@@ -335,12 +261,53 @@ export default function StandupCommandCenter() {
   })();
 
   const [factRevealed, setFactRevealed] = useState(false);
-  const [factOffset, setFactOffset] = useState(0);
+  const [factsPool, setFactsPool] = useState([]);
+  const [peopleMap, setPeopleMap] = useState({});
+  const [currentFact, setCurrentFact] = useState(null);
+  const [factsLoading, setFactsLoading] = useState(true);
+
+  useEffect(() => {
+    async function loadFacts() {
+      try {
+        const [factsSnap, peopleSnap] = await Promise.all([
+          getDocs(collection(db, "facts")),
+          getDocs(collection(db, "people")),
+        ]);
+
+        const allFacts = factsSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+        const map = {};
+        peopleSnap.docs.forEach(d => {
+          const { code, name } = d.data();
+          map[code] = name;
+        });
+
+        const unseen = allFacts.filter(f => !f.shownAt);
+        const pool = unseen.length > 0 ? unseen : allFacts;
+
+        setPeopleMap(map);
+        setFactsPool(pool);
+        setCurrentFact(buildDisplayFact(pickRandom(pool), map));
+      } finally {
+        setFactsLoading(false);
+      }
+    }
+    loadFacts();
+  }, []);
+
+  async function handleReveal() {
+    if (!currentFact) return;
+    setFactRevealed(true);
+    await updateDoc(doc(db, "facts", currentFact.id), { shownAt: serverTimestamp() });
+  }
+
+  function handleNextFact() {
+    setFactRevealed(false);
+    const next = pickRandom(factsPool, currentFact?.id);
+    setCurrentFact(buildDisplayFact(next, peopleMap));
+  }
 
   const sprintDay = calcSprintDay(data.sprintStart);
   const displayDate = formatDate(data.today || todayISO());
-  const weekdayKey = getWeekdayKey(data.today || todayISO());
-  const teamFact = getFactForDay(weekdayKey, factOffset);
 
   const hasTeams = (data.teams ?? []).some(
     (t) => t.name.trim() || t.done > 0 || t.incomplete > 0 || t.unestimated > 0
@@ -360,8 +327,7 @@ export default function StandupCommandCenter() {
           )}
         </div>
         <div className="scc-date-quote">
-          <span className="scc-date-quote-text">{teamFact.clue}</span>
-          {/* <span className="scc-date-quote-author">trivia time</span> */}
+          <span className="scc-date-quote-text">{currentFact?.clue ?? ""}</span>
         </div>
       </div>
 
@@ -506,33 +472,40 @@ export default function StandupCommandCenter() {
         <span className="scc-fact-icon">👤</span>
         <div className="scc-fact-body">
           <span className="scc-fact-label">Who on the team…</span>
-          <span className="scc-fact-text">{teamFact.clue}</span>
-          <div className="scc-fact-reveal-row">
-            {factRevealed ? (
-              <span className="scc-fact-name">👋 {teamFact.name}</span>
-            ) : (
-              <>
-                <button
-                  className="scc-trivia-reveal"
-                  onClick={() => setFactRevealed(true)}
-                >
-                  Reveal who
-                </button>
-
-                <button
-                  className="scc-trivia-reveal scc-fact-advance"
-                  title="Advance fact"
-                  aria-label="Advance to another fact"
-                  onClick={() => {
-                    setFactRevealed(false);
-                    setFactOffset((prev) => prev + 1);
-                  }}
-                >
-                  →
-                </button>
-              </>
-            )}
-          </div>
+          <span className="scc-fact-text">
+            {factsLoading ? "Loading…" : (currentFact?.clue ?? "No facts yet.")}
+          </span>
+          {!factsLoading && currentFact && (
+            <div className="scc-fact-reveal-row">
+              {factRevealed ? (
+                <>
+                  <span className="scc-fact-name">👋 {currentFact.name}</span>
+                  <button
+                    className="scc-trivia-reveal scc-fact-advance"
+                    title="Next fact"
+                    aria-label="Next fact"
+                    onClick={handleNextFact}
+                  >
+                    Next →
+                  </button>
+                </>
+              ) : (
+                <>
+                  <button className="scc-trivia-reveal" onClick={handleReveal}>
+                    Reveal who
+                  </button>
+                  <button
+                    className="scc-trivia-reveal scc-fact-advance"
+                    title="Skip to another fact"
+                    aria-label="Skip fact"
+                    onClick={handleNextFact}
+                  >
+                    →
+                  </button>
+                </>
+              )}
+            </div>
+          )}
         </div>
       </div>
 
