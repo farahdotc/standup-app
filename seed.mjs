@@ -19,8 +19,21 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-const REG_FILE   = "/Users/farahcadet/Downloads/Mystery Fact Code Registration(1-13).xlsx";
-const FACTS_FILE = "/Users/farahcadet/Downloads/One Thing You'd Never Guess About Me(1-15).xlsx";
+const DOWNLOADS = "/Users/farahcadet/Downloads";
+
+function findFile(prefix) {
+  const fs = require("fs");
+  const matches = fs.readdirSync(DOWNLOADS)
+    .filter(f => f.startsWith(prefix) && f.endsWith(".xlsx"))
+    .map(f => ({ f, mtime: fs.statSync(`${DOWNLOADS}/${f}`).mtimeMs }))
+    .sort((a, b) => b.mtime - a.mtime);
+  if (!matches.length) throw new Error(`No file found in Downloads starting with "${prefix}"`);
+  console.log(`  Using: ${matches[0].f}`);
+  return `${DOWNLOADS}/${matches[0].f}`;
+}
+
+const REG_FILE   = findFile("Mystery Fact Code Registration");
+const FACTS_FILE = findFile("One Thing You'd Never Guess About Me");
 
 function padCode(code) {
   return String(code).trim().padStart(4, "0");
