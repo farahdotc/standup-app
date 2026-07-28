@@ -483,7 +483,7 @@ export default function StandupCommandCenter() {
           )}
         </div>
         <div className="scc-date-quote">
-          <span className="scc-date-quote-text">SprintBuddy</span>
+          <span className="scc-date-quote-text">{dailyQuestion}</span>
         </div>
       </div>
 
