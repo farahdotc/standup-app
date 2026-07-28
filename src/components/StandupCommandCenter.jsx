@@ -60,6 +60,146 @@ function _getTriviaForDay(sprintDay) {
 // Keep TRIVIA available for when trivia mode is re-enabled
 void TRIVIA;
 
+/* ─── Daily questions ────────────────────────────────────────────────────── */
+const DAILY_QUESTIONS = [
+  "What's something you bought for under $100 that you use all the time?",
+  "What's one purchase you wish you'd made years earlier?",
+  "What's one thing you own that you think everyone should have?",
+  "What's a kitchen gadget you actually use?",
+  "What's an app that's worth paying for?",
+  "What's something surprisingly useful you keep in your car?",
+  "What's the best gift you've ever received?",
+  "What's something you thought was gimmicky until you tried it?",
+  "What's one subscription you'll probably never cancel?",
+  "What's one thing you've bought that completely lived up to the hype?",
+  "What's something you were completely wrong about?",
+  "What's a food you hated as a kid but love now?",
+  "What's something you thought was overrated until you experienced it?",
+  "What's something that's actually worth spending more money on?",
+  "What's a trend you didn't expect to like?",
+  "What's something you used to care about that doesn't matter to you anymore?",
+  "What's a place that surprised you?",
+  "What's a movie you appreciated more the second time?",
+  "What's a job you didn't realize was difficult until you tried it?",
+  "What's something that gets better with age?",
+  "What's the best restaurant you've found by accident?",
+  "What's one YouTube channel everyone should know about?",
+  "What's the best podcast you've listened to?",
+  "What's the best documentary you've watched?",
+  "What's a book that changed how you think?",
+  "What's the best local hidden gem where you live?",
+  "What's one website you think more people should know about?",
+  "What's a recipe everyone should learn?",
+  "What's a TV show you recommend that most people haven't seen?",
+  "What's one life hack that actually works?",
+  "What are you currently learning just because you're interested?",
+  "What's a hobby you admire but don't have?",
+  "What's something you could happily spend hours talking about?",
+  "What's something you've gone down a rabbit hole researching?",
+  "What's one skill you'd like to have someday?",
+  "What's something you've become much better at over the last five years?",
+  "What's one thing you've taught yourself?",
+  "What's a topic you wish you knew more about?",
+  "What's one random fact you think is fascinating?",
+  "What's something you've recently become interested in?",
+  "What's your perfect Saturday?",
+  "What's your favorite way to waste an hour?",
+  "What's your favorite weather?",
+  "What's your favorite smell?",
+  "What's a sound you find relaxing?",
+  "What's your favorite room in your house?",
+  "What's the first thing you do after work?",
+  "What's your favorite season and why?",
+  "What's your favorite holiday tradition?",
+  "What's something small that instantly improves your day?",
+  "What's one piece of advice you'd give your 20-year-old self?",
+  "What's something you wish someone had taught you earlier?",
+  "What's the best advice you've ever received?",
+  "What's one decision you're really glad you made?",
+  "What's something that seemed scary but turned out great?",
+  "What's a risk that paid off?",
+  "What's something you're proud you stuck with?",
+  "What's something you wish you'd started sooner?",
+  "What's a lesson you've learned the hard way?",
+  "What's something that gets easier with experience?",
+  "What's your favorite way to start the morning?",
+  "What's your ideal workspace?",
+  "Do you prefer total silence or background noise?",
+  "What's one meeting habit you appreciate?",
+  "What's your favorite keyboard shortcut?",
+  "What's your favorite office snack?",
+  "What's something that helps you focus?",
+  "What's the best compliment you've received professionally?",
+  "What's your favorite notebook, planner, or organization tool?",
+  "What's your dream home office feature?",
+  "What's something most people don't know exists?",
+  "What's something you're irrationally picky about?",
+  "What's a hill you'll happily die on?",
+  "What's something everyone should try at least once?",
+  "What's a smell that instantly reminds you of childhood?",
+  "What's your weirdest useful talent?",
+  "What's something people always ask you for help with?",
+  "What's something you notice that most people don't?",
+  "What's one thing you're always curious about?",
+  "What's a question you love asking other people?",
+  "What's somewhere you've visited that you'd happily return to every year?",
+  "What's one city you think everyone should visit?",
+  "What's the prettiest drive you've ever taken?",
+  "What's the coolest natural place you've seen?",
+  "What's your favorite road trip stop?",
+  "What's the most memorable meal you've had while traveling?",
+  "What's a place that felt nothing like you expected?",
+  "What's somewhere you haven't been but know you'll love?",
+  "What's your favorite airport?",
+  "What's your favorite vacation memory?",
+  "If someone gave you six months off with full pay, what would you do?",
+  "If money wasn't a factor, what hobby would you pick up?",
+  "If you could have coffee with anyone, who would it be?",
+  "If you had to give a TED Talk tomorrow, what would it be about?",
+  "What's something you're convinced you're better at than the average person?",
+  "What's one luxury you secretly enjoy?",
+  "If you had to eat one cuisine for a month, what would it be?",
+  "What's one thing that instantly makes you smile?",
+  "If someone visited your hometown for one day, where would you take them?",
+  "What's something you're excited about right now?",
+  "What purchase has had the highest return on investment in your life?",
+  "What do you spend money on that you'll never regret?",
+  "What's something you once thought was a waste of money?",
+  "What's one convenience you'll happily pay for?",
+  "What's a simple habit that has made your life noticeably better?",
+  "What's one thing you do that saves you a surprising amount of time?",
+  "What's the best recommendation someone has ever given you?",
+  "What's something you were influenced into trying that you're grateful for?",
+  "What's the nicest compliment you've ever received?",
+  "What's one tradition you'd like to start?",
+  "What's something you've gotten rid of that you don't miss?",
+  "What's one thing you always pack when traveling?",
+  "What's something you've become less stressed about as you've gotten older?",
+  "What always makes a place feel like home?",
+  "What's something that instantly earns your respect?",
+  "What's a tiny everyday luxury you really appreciate?",
+  "What's one thing you hope never becomes obsolete?",
+  "What's something that feels expensive but is actually a great value?",
+  "What's a belief you've held for a long time that has served you well?",
+  "What's something you're looking forward to that isn't a vacation?",
+];
+
+const TEAM_MEMBERS = ["Tom", "Febian", "Scott", "Steve", "John", "Jean", "Farah", "Travis", "Elise", "Lauren", "Adam"];
+
+function getDailyQuestion(dateStr, offset = 0) {
+  let hash = 0;
+  for (let i = 0; i < dateStr.length; i++) {
+    hash = ((hash * 31) + dateStr.charCodeAt(i)) >>> 0;
+  }
+  return DAILY_QUESTIONS[(hash + offset) % DAILY_QUESTIONS.length];
+}
+
+function pickTwoNames(exclude = []) {
+  const pool = TEAM_MEMBERS.filter(n => !exclude.includes(n));
+  const shuffled = [...pool].sort(() => Math.random() - 0.5);
+  return shuffled.slice(0, 2);
+}
+
 /* ─── Team facts (Firestore) ─────────────────────────────────────────────── */
 function pickRandom(pool, excludeId = null) {
   const candidates = excludeId ? pool.filter(f => f.id !== excludeId) : pool;
@@ -306,8 +446,24 @@ export default function StandupCommandCenter() {
     setCurrentFact(buildDisplayFact(next, peopleMap));
   }
 
+  const [questionOffset, setQuestionOffset] = useState(0);
+  const [selectedNames, setSelectedNames] = useState([]);
+
   const sprintDay = calcSprintDay(data.sprintStart);
   const displayDate = formatDate(data.today || todayISO());
+  const todayKey = data.today || todayISO();
+  const dailyQuestion = getDailyQuestion(todayKey, questionOffset);
+
+  function handlePickNames() {
+    setSelectedNames(pickTwoNames());
+  }
+
+  function handleReplaceName(index) {
+    const others = TEAM_MEMBERS.filter(n => !selectedNames.includes(n));
+    if (!others.length) return;
+    const replacement = others[Math.floor(Math.random() * others.length)];
+    setSelectedNames(prev => prev.map((n, i) => i === index ? replacement : n));
+  }
 
   const hasTeams = (data.teams ?? []).some(
     (t) => t.name.trim() || t.done > 0 || t.incomplete > 0 || t.unestimated > 0
@@ -327,7 +483,7 @@ export default function StandupCommandCenter() {
           )}
         </div>
         <div className="scc-date-quote">
-          <span className="scc-date-quote-text">{currentFact?.clue ?? ""}</span>
+          <span className="scc-date-quote-text">SprintBuddy</span>
         </div>
       </div>
 
@@ -467,67 +623,49 @@ export default function StandupCommandCenter() {
         </section>
       )}
 
-      {/* Team Fact */}
-      <div className="scc-fact-bar">
-        <span className="scc-fact-icon">👤</span>
-        <div className="scc-fact-body">
-          <span className="scc-fact-label">Who on the team…</span>
-          <span className="scc-fact-text">
-            {factsLoading ? "Loading…" : (currentFact?.clue ?? "No facts yet.")}
-          </span>
-          {!factsLoading && currentFact && (
-            <div className="scc-fact-reveal-row">
-              {factRevealed ? (
-                <>
-                  <span className="scc-fact-name">👋 {currentFact.name}</span>
-                  <button
-                    className="scc-trivia-reveal scc-fact-advance"
-                    title="Next fact"
-                    aria-label="Next fact"
-                    onClick={handleNextFact}
-                  >
-                    Next →
-                  </button>
-                </>
-              ) : (
-                <>
-                  <button className="scc-trivia-reveal" onClick={handleReveal}>
-                    Reveal who
-                  </button>
-                  <button
-                    className="scc-trivia-reveal scc-fact-advance"
-                    title="Skip to another fact"
-                    aria-label="Skip fact"
-                    onClick={handleNextFact}
-                  >
-                    →
-                  </button>
-                </>
-              )}
-            </div>
+      {/* Daily Question */}
+      <section className="scc-card scc-question-card">
+        <div className="scc-card-header">
+          <h2 className="scc-section-title">
+            <span className="scc-icon">💬</span> Daily Question
+          </h2>
+          <button
+            className="scc-btn scc-btn--sm"
+            onClick={() => setQuestionOffset(q => q + 1)}
+          >
+            New question
+          </button>
+        </div>
+        <p className="scc-question-text">{dailyQuestion}</p>
+        <div className="scc-question-names">
+          {selectedNames.length === 0 ? (
+            <button className="scc-btn scc-btn--pick" onClick={handlePickNames}>
+              🎲 Pick who answers
+            </button>
+          ) : (
+            <>
+              <span className="scc-question-names-label">Answering today:</span>
+              <div className="scc-name-chips">
+                {selectedNames.map((name, i) => (
+                  <span key={i} className="scc-name-chip">
+                    {name}
+                    <button
+                      className="scc-name-chip-replace"
+                      title="Replace (absent)"
+                      onClick={() => handleReplaceName(i)}
+                    >
+                      ×
+                    </button>
+                  </span>
+                ))}
+                <button className="scc-btn scc-btn--sm" onClick={handlePickNames}>
+                  Re-pick
+                </button>
+              </div>
+            </>
           )}
         </div>
-      </div>
-
-      {/* Trivia — hidden, keeping code for later
-      <div className="scc-trivia-bar">
-        <span className="scc-trivia-icon">🧠</span>
-        <div className="scc-trivia-questions">
-          {trivia.map((item, i) => (
-            <div key={i} className="scc-trivia-item">
-              <span className="scc-trivia-num">{i + 1}</span>
-              <div className="scc-trivia-body">
-                <span className="scc-trivia-q">{item.q}</span>
-                {triviaRevealed[i]
-                  ? <span className={`scc-trivia-a scc-trivia-a--${item.a.toLowerCase()}`}>{item.a}</span>
-                  : <button className="scc-trivia-reveal" onClick={() => setTriviaRevealed((prev) => prev.map((v, j) => j === i ? true : v))}>Reveal</button>
-                }
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-      */}
+      </section>
 
       {/* Jira Insights */}
       {(editing || hasInsights) && (

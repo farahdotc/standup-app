@@ -1132,3 +1132,82 @@
 .scc-fact-advance:hover {
   opacity: 1;
 }
+/* ─── Daily Question ─────────────────────────────────────────────────────── */
+.scc-question-card {
+  border-left: 3px solid var(--scc-accent);
+}
+
+.scc-question-text {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--scc-text-heading);
+  line-height: 1.5;
+  margin: 4px 0 20px;
+}
+
+.scc-question-names {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.scc-question-names-label {
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--scc-text-muted);
+}
+
+.scc-name-chips {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.scc-name-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: var(--scc-accent-glow);
+  border: 1px solid var(--scc-accent);
+  color: var(--scc-accent);
+  font-size: 14px;
+  font-weight: 600;
+  padding: 4px 10px 4px 12px;
+  border-radius: 20px;
+}
+
+.scc-name-chip-replace {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--scc-accent);
+  font-size: 16px;
+  line-height: 1;
+  padding: 0 2px;
+  opacity: 0.5;
+  transition: opacity 0.15s;
+}
+
+.scc-name-chip-replace:hover {
+  opacity: 1;
+}
+
+.scc-btn--pick {
+  font-size: 14px;
+  padding: 8px 16px;
+  background: var(--scc-accent);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: opacity 0.15s;
+}
+
+.scc-btn--pick:hover {
+  opacity: 0.85;
+}
