@@ -1,16 +1,50 @@
-# React + Vite
+# Sprint Buddy
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A one-page dashboard for running daily stand-up: sprint pulse, epic progress, Jira insights, carryover risks, and a daily icebreaker question with a random name picker.
 
-Currently, two official plugins are available:
+Everything you type in Edit mode is saved in the browser (localStorage), so the dashboard looks the same the next time it's opened on that machine.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## Run it
 
-## React Compiler
+```bash
+npm install
+npm run dev      # local dev server at http://localhost:5173
+npm run build    # production build in dist/ (Netlify runs this)
+npm run lint
+```
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Project layout
 
-## Expanding the ESLint configuration
+| Path | What it holds |
+| --- | --- |
+| `src/components/StandupCommandCenter.jsx` | The dashboard and its sections |
+| `src/data/dailyQuestions.js` | Icebreaker questions (one per day, rotates by date) |
+| `src/data/trivia.js` | True/false trivia, parked for later |
+| `src/features/useTeamFacts.js` | "Mystery fact" feature backed by Firestore, parked for later |
+| `src/lib/utils.js` | Date math, shuffling, rich-text cleaning, safe saving |
+| `seed.mjs` | Imports people and facts from Microsoft Forms exports into Firestore |
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+The team list for the name picker is `TEAM_MEMBERS` at the top of the component.
+
+## Seeding team facts
+
+Firebase settings live in `.env` (not committed):
+
+```
+VITE_FIREBASE_API_KEY=...
+VITE_FIREBASE_AUTH_DOMAIN=...
+VITE_FIREBASE_PROJECT_ID=...
+VITE_FIREBASE_STORAGE_BUCKET=...
+VITE_FIREBASE_MESSAGING_SENDER_ID=...
+VITE_FIREBASE_APP_ID=...
+```
+
+Download the two Forms exports ("Mystery Fact Code Registration" and "One Thing You'd Never Guess About Me") to `~/Downloads`, then run:
+
+```bash
+npm run seed
+# or point at another folder:
+SEED_DIR=~/Desktop/forms npm run seed
+```
+
+The script only adds new people and facts, so it's safe to rerun.

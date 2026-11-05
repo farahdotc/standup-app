@@ -1007,44 +1007,6 @@
   font-size: 12px;
 }
 
-/* ─── Risks ──────────────────────────────────────────────────────────────── */
-.scc-risks {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 12px;
-}
-
-.scc-risk {
-  border-radius: var(--scc-radius-sm);
-  padding: 14px 16px;
-  border: 1px solid transparent;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.scc-risk--danger  { background: var(--scc-danger-bg);  border-color: var(--scc-danger-border); }
-.scc-risk--warning { background: var(--scc-warning-bg); border-color: var(--scc-warning-border); }
-.scc-risk--info    { background: var(--scc-info-bg);    border-color: var(--scc-info-border); }
-
-.scc-risk-label {
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-}
-
-.scc-risk--danger  .scc-risk-label { color: var(--scc-danger); }
-.scc-risk--warning .scc-risk-label { color: var(--scc-warning); }
-.scc-risk--info    .scc-risk-label { color: var(--scc-info); }
-
-.scc-risk-text {
-  font-size: 13px;
-  color: var(--scc-text);
-  margin: 0;
-  line-height: 1.5;
-}
-
 /* ─── Shared inputs ──────────────────────────────────────────────────────── */
 .scc-textarea {
   width: 100%;
@@ -1105,10 +1067,6 @@
 
   .scc-metrics {
     grid-template-columns: repeat(2, 1fr);
-  }
-
-  .scc-risks {
-    grid-template-columns: 1fr;
   }
 
   .scc-grid-2 {
@@ -1210,4 +1168,12 @@
 
 .scc-btn--pick:hover {
   opacity: 0.85;
+}
+
+.scc-date-hint {
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--scc-warning);
 }

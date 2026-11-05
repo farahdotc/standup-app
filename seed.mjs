@@ -1,25 +1,34 @@
-// Run once: node seed.mjs
+// Run with: npm run seed
 // Imports people and facts from Microsoft Forms Excel exports into Firestore.
+// Firebase settings come from .env (the same VITE_FIREBASE_* values the app uses).
 
 import { initializeApp } from "firebase/app";
-import { getFirestore, collection, addDoc, getDocs, deleteDoc, query, where } from "firebase/firestore";
+import { getFirestore, collection, addDoc, getDocs } from "firebase/firestore";
 import { createRequire } from "module";
+import os from "os";
+import path from "path";
 const require = createRequire(import.meta.url);
 const XLSX = require("xlsx");
 
+const env = process.env;
 const firebaseConfig = {
-  apiKey: "AIzaSyAF0qZiYituBKejRuKS_yOpMGCKHW1AyoE",
-  authDomain: "standup-buddy-f0af4.firebaseapp.com",
-  projectId: "standup-buddy-f0af4",
-  storageBucket: "standup-buddy-f0af4.firebasestorage.app",
-  messagingSenderId: "477162565305",
-  appId: "1:477162565305:web:90f0addd4779a72cb13568",
+  apiKey: env.VITE_FIREBASE_API_KEY,
+  authDomain: env.VITE_FIREBASE_AUTH_DOMAIN,
+  projectId: env.VITE_FIREBASE_PROJECT_ID,
+  storageBucket: env.VITE_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  appId: env.VITE_FIREBASE_APP_ID,
 };
+if (!firebaseConfig.apiKey || !firebaseConfig.projectId) {
+  console.error("Missing Firebase settings. Run `npm run seed` so .env is loaded.");
+  process.exit(1);
+}
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-const DOWNLOADS = "/Users/farahcadet/Downloads";
+// Override with SEED_DIR=/some/folder npm run seed
+const DOWNLOADS = env.SEED_DIR || path.join(os.homedir(), "Downloads");
 
 function findFile(prefix) {
   const fs = require("fs");
