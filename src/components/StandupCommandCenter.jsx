@@ -77,7 +77,6 @@ const defaultInsights = [
 const defaultData = {
   sprintName: "Sprint 12",
   sprintStart: "",
-  today: "",
   sprintGoal: "Stabilize COR platform work and reduce carryover risk.",
   committed: "42 pts",
   done: "18 pts",
@@ -94,6 +93,24 @@ const CATEGORY_VARIANTS = {
   "Misalignment": "info",
 };
 
+// Today's date (YYYY-MM-DD), kept current if the page stays open past midnight
+// or the laptop wakes up on a new day.
+function useToday() {
+  const [today, setToday] = useState(todayISO);
+  useEffect(() => {
+    const refresh = () => setToday(todayISO());
+    const timer = setInterval(refresh, 60 * 1000);
+    document.addEventListener("visibilitychange", refresh);
+    window.addEventListener("focus", refresh);
+    return () => {
+      clearInterval(timer);
+      document.removeEventListener("visibilitychange", refresh);
+      window.removeEventListener("focus", refresh);
+    };
+  }, []);
+  return today;
+}
+
 function variantForCategory(cat) {
   return CATEGORY_VARIANTS[cat] ?? "neutral";
 }
@@ -101,6 +118,7 @@ function variantForCategory(cat) {
 export default function StandupCommandCenter() {
   const [data, setData] = useState(() => loadSaved(STORAGE_KEY, defaultData));
   const [editing, setEditing] = useState(false);
+  const todayKey = useToday();
 
   useEffect(() => {
     save(STORAGE_KEY, data);
@@ -182,7 +200,6 @@ export default function StandupCommandCenter() {
   const [questionOffset, setQuestionOffset] = useState(0);
   const [selectedNames, setSelectedNames] = useState([]);
 
-  const todayKey = data.today || todayISO();
   const sprintDay = calcSprintDay(data.sprintStart, todayKey, SPRINT_LENGTH_DAYS);
   const displayDate = formatDate(todayKey);
   const dailyQuestion = getDailyQuestion(todayKey, questionOffset);
@@ -244,15 +261,6 @@ export default function StandupCommandCenter() {
                   {data.sprintStart && parseISODate(data.sprintStart).getDay() !== 1 && (
                     <span className="scc-date-hint">Sprints start on a Monday</span>
                   )}
-                </label>
-                <label className="scc-date-label">
-                  Today
-                  <input
-                    type="date"
-                    className="scc-date-input"
-                    value={data.today || todayISO()}
-                    onChange={(e) => update("today", e.target.value)}
-                  />
                 </label>
               </div>
             )}
